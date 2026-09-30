@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Parking Management System</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#182235}aside{position:fixed;width:240px;top:0;bottom:0;background:#111827;color:#fff;padding:25px 16px}aside h2{margin:0}aside p{color:#9ca3af}nav button{display:block;width:100%;padding:13px;margin:7px 0;border:0;border-radius:9px;background:transparent;color:#cbd5e1;text-align:left;cursor:pointer}nav button:hover{background:#243148;color:#fff}main{margin-left:240px;padding:30px}header{display:flex;justify-content:space-between;margin-bottom:25px}header h1{margin:0}header p{color:#718096}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}.stats div,.card{background:#fff;border:1px solid #e5eaf1;border-radius:15px;padding:20px;box-shadow:0 3px 15px #00000008}.stats small{display:block;color:#718096;margin:8px 0 4px}.stats b{font-size:25px}.head{display:flex;justify-content:space-between;align-items:center}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.slot{padding:18px;text-align:center;border-radius:12px;border:1px solid #cbd5e1;background:#f8fafc}.free{background:#effcf4;border-color:#a7e5bd}.busy{background:#fff2f2;border-color:#ffb4b4}.slot b{display:block}.slot small{display:block;margin-top:7px}.page{display:none}.page.active{display:block}.form{max-width:600px}.form p{color:#718096}.form label{display:block;font-weight:bold;margin:18px 0}.form input,.form select{display:block;width:100%;padding:12px;margin-top:7px;border:1px solid #ccd5e1;border-radius:8px}.form button,.head button{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold}.form button{width:100%}#parkMsg,#exitMsg{margin-top:18px}.ok{padding:15px;background:#effcf4;border:1px solid #a7e5bd;border-radius:10px}.err{padding:15px;background:#fff2f2;border:1px solid #ffb4b4;border-radius:10px}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{text-align:left;padding:12px;border-bottom:1px solid #e5e7eb}.tablewrap{overflow:auto}pre{margin-top:18px;background:#111827;color:#d1fae5;padding:15px;border-radius:10px;min-height:140px;white-space:pre-wrap}@media(max-width:750px){aside{position:static;width:100%;padding:15px}nav{display:flex;overflow:auto}nav button{min-width:max-content;margin:4px}main{margin:0;padding:16px}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}header #clock{display:none}}</style>
+</head><body>
+<aside><h2>🚗 Smart Parking</h2><p>Management System</p>
+<nav>
+<button data-page="dashboard">🏠 Dashboard</button>
+<button data-page="park">🚗 Park Vehicle</button>
+<button data-page="exit">🚪 Vehicle Exit</button>
+<button data-page="slots">🅿️ Parking Slots</button>
+<button data-page="history">📊 History</button>
+<button data-page="simulation">⚡ Simulation</button>
+</nav></aside>
+<main><header><div><h1 id="title">Dashboard</h1><p id="subtitle">Live overview of your parking facility</p></div><span id="clock"></span></header>
+
+<section id="dashboard" class="page active">
+<div class="stats">
+<div>🅿️<small>Total Slots</small><b id="total">10</b></div>
+<div>🔴<small>Occupied</small><b id="occupied">0</b></div>
+<div>🟢<small>Available</small><b id="available">10</b></div>
+<div>💰<small>Revenue</small><b id="revenue">₹0</b></div>
+</div>
+<div class="card"><div class="head"><h2>Parking Overview</h2><button data-page="park">+ Park Vehicle</button></div><div id="dashSlots" class="grid"></div></div>
+</section>
+
+<section id="park" class="page"><div class="form card"><h2>🚗 Park Vehicle</h2><p>Register a vehicle and assign the first free slot.</p>
+<form id="parkForm"><label>Registration Number<input id="reg" required placeholder="TN01AB1234"></label>
+<label>Owner Name<input id="owner" required placeholder="Syed"></label>
+<label>Vehicle Type<select id="type"><option>Car</option><option>Bike</option></select></label>
+<button>Park Vehicle</button></form><div id="parkMsg"></div></div></section>
+
+<section id="exit" class="page"><div class="form card"><h2>🚪 Vehicle Exit</h2><p>Release a vehicle and calculate its bill.</p>
+<form id="exitForm"><label>Registration Number<input id="exitReg" required placeholder="TN01AB1234"></label><button>Generate Bill</button></form><div id="exitMsg"></div></div></section>
+
+<section id="slots" class="page"><div class="card"><h2>🅿️ Parking Slots</h2><div id="allSlots" class="grid"></div></div></section>
+
+<section id="history" class="page"><div class="card"><h2>📊 Parking History</h2>
+<div class="tablewrap"><table><thead><tr><th>Vehicle</th><th>Type</th><th>Slot</th><th>Entry</th><th>Exit</th><th>Fee</th></tr></thead><tbody id="historyBody"></tbody></table></div></div></section>
+
+<section id="simulation" class="page"><div class="form card"><h2>⚡ Multi-Vehicle Simulation</h2><p>Simulate vehicles entering and leaving the lot.</p>
+<label>Number of vehicles<input id="simCount" type="number" min="1" max="20" value="8"></label><button id="simulate">▶ Run Simulation</button><pre id="log"></pre></div></section>
+</main><script>const slots=Array.from({length:10},(_,i)=>({n:i+1,v:null}));let history=[],revenue=0;
+const $=x=>document.getElementById(x),time=d=>new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),money=n=>'₹'+n.toFixed(0);
+const pages={dashboard:['Dashboard','Live overview of your parking facility'],park:['Park Vehicle','Register a vehicle and assign a slot'],exit:['Vehicle Exit','Release a slot and calculate a bill'],slots:['Parking Slots','Live status of all parking slots'],history:['Parking History','Review previous parking records'],simulation:['Simulation','Test multi-vehicle activity']};
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(p).classList.add('active');$('title').textContent=pages[p][0];$('subtitle').textContent=pages[p][1];render()}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
+function draw(id){$(id).innerHTML=slots.map(s=>s.v?`<div class="slot busy"><b>Slot ${s.n}</b><small>🔴 OCCUPIED</small><small>${s.v.reg}</small></div>`:`<div class="slot free"><b>Slot ${s.n}</b><small>🟢 FREE</small></div>`).join('')}
+function render(){let o=slots.filter(s=>s.v).length;$('occupied').textContent=o;$('available').textContent=10-o;$('revenue').textContent=money(revenue);draw('dashSlots');draw('allSlots');$('historyBody').innerHTML=history.length?history.slice().reverse().map(h=>`<tr><td>${h.reg}</td><td>${h.type}</td><td>${h.slot}</td><td>${time(h.entry)}</td><td>${h.exit?time(h.exit):'—'}</td><td>${h.fee==null?'—':money(h.fee)}</td></tr>`).join(''):`<tr><td colspan="6">No records yet.</td></tr>`}
+$('parkForm').onsubmit=e=>{e.preventDefault();let reg=$('reg').value.trim().toUpperCase(),owner=$('owner').value.trim(),type=$('type').value;if(slots.some(s=>s.v?.reg===reg))return $('parkMsg').innerHTML='<div class="err">Vehicle is already parked.</div>';let s=slots.find(x=>!x.v);if(!s)return $('parkMsg').innerHTML='<div class="err">No free slots available. Parking lot is full.</div>';s.v={reg,owner,type,entry:Date.now()};history.push({reg,type,slot:s.n,entry:s.v.entry,v:s.v});$('parkMsg').innerHTML=`<div class="ok">✅ Parked successfully in Slot ${s.n}.<br>Entry: ${time(s.v.entry)}</div>`;e.target.reset();render()};
+$('exitForm').onsubmit=e=>{e.preventDefault();let reg=$('exitReg').value.trim().toUpperCase(),s=slots.find(x=>x.v?.reg===reg);if(!s)return $('exitMsg').innerHTML='<div class="err">Vehicle not found.</div>';let exit=Date.now(),mins=Math.max(1,Math.ceil((exit-s.v.entry)/60000)),fee=Math.max(1,Math.ceil(mins/60))*20,h=history.find(x=>x.v===s.v);h.exit=exit;h.fee=fee;revenue+=fee;let v=s.v;s.v=null;$('exitMsg').innerHTML=`<div class="ok"><b>Vehicle exited successfully.</b><br><br>Vehicle: ${v.reg}<br>Slot: ${h.slot}<br>Duration: ${mins} min<br><b>Parking Fee: ${money(fee)}</b></div>`;e.target.reset();render()};
+$('simulate').onclick=async()=>{let n=Math.min(20,Math.max(1,+$('simCount').value||1)),log=$('log');log.textContent='';for(let i=1;i<=n;i++){let s=slots.find(x=>!x.v),reg='SIM-'+String(i).padStart(3,'0');if(!s){log.textContent+=`[ERROR] ${reg} → parking lot full\n`;continue}s.v={reg,owner:'Simulation',type:'Car',entry:Date.now()};log.textContent+=`[ENTER] ${reg} → Slot ${s.n}\n`;render();setTimeout(()=>{let q=slots.find(x=>x.v?.reg===reg);if(q){q.v=null;log.textContent+=`[EXIT ] ${reg} ← Slot ${q.n}\n`;render()}},900+i*60);await new Promise(r=>setTimeout(r,120))}};
+setInterval(()=>$('clock').textContent=new Date().toLocaleString(),1000);render();</script></body></html>
